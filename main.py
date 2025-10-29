@@ -7,6 +7,7 @@ import random, cv2, sys, os
 width = 480
 heigth = 480
 nails = 500
+nail_pos = list()
 
 # θk​=θ0​+n2πk​,xk​=xc​+Rcosθk​,yk​=yc​+Rsinθk​,k=0,…,n−1.
 
@@ -20,14 +21,7 @@ def draw_line(color: float, x: int, y: int, img: Image):
 	"""
 	# img[x, y] = color
 	# if (x == x + width/2 * math.cos())
-	angle = 0
-	for k in range(nails):
-		angle = angle + (2 * math.pi * k) / nails
-		xk = (width/2) + width / 2 * angle * math.cos(angle)
-		yk = (width/2) + width / 2 * angle * math.sin(angle)
-		# img[int(xk), int(yk)] = (255, 255, 255)
-		if (xk <= x and yk <= y):
-			img[x, y] = (255, 255, 255)
+	img[x, y] = color
 
 
 def scale(Image: any) -> np.ndarray:
@@ -37,6 +31,22 @@ def scale(Image: any) -> np.ndarray:
 def run(Image : any, name: str):
 	original_img = scale(Image)
 	img = np.zeros((width, heigth,3),np.uint8)
+
+	"""
+		for k in range(nails):
+			angle = angle + (2 * math.pi * k) / nails
+			xk = (width/2) + width / 2 * angle * math.cos(angle)
+			yk = (width/2) + width / 2 * angle * math.sin(angle)
+			# img[int(xk), int(yk)] = (255, 255, 255)
+			if (xk <= x and yk <= y):
+				img[x, y] = (255, 255, 255)
+	"""
+	for k in range(nails):		
+		angle = (2 * math.pi * k) / nails
+		xk = (width/2) + (width / 2) * math.cos(angle)
+		yk = (width/2) + (width / 2) * math.sin(angle)
+		nail_pos.append((int(xk), int(yk)))
+		img[int(min(xk, 479)), int(min(yk, 479))] = (255, 255, 255)
 
 	for x in range(width):
 		for y in range(heigth):
@@ -48,7 +58,9 @@ def run(Image : any, name: str):
 			# Convert from RGB to grayscale Formula: 0.2126 R + 0.7152 G + 0.0722 B
 			R, G, B = original_img[x, y]
 			value = 0.2126 * R + 0.7152 * G + 0.0722 * B
-			draw_line(value, x, y, img)
+			# draw_line(value, x, y, img)
+			# if (x, y == nail_pos[x] or x, y == nail_pos[y]):
+			# 	img[x, y] = (255, 255, 255)
 
 	cv2.imwrite("string_" + name,img)
 
