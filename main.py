@@ -9,8 +9,6 @@ heigth = 480
 nails = 500
 nail_pos = list()
 
-# θk​=θ0​+n2πk​,xk​=xc​+Rcosθk​,yk​=yc​+Rsinθk​,k=0,…,n−1.
-
 def bresenham(x0, y0, x1, y1):
 	"""Return list of integer (x, y) points on the line from (x0,y0) to (x1,y1)."""
 	points = []
@@ -46,52 +44,51 @@ def bresenham(x0, y0, x1, y1):
 	return points
 
 
-def draw_line(color: tuple, x: int, y: int, img: Image):
+def draw_line(color: tuple, x, y, xe, ye, img):
 	"""
 	y = f(x) = mx + b
-	where m {\displaystyle m} is the slope and b {\displaystyle b} is the y-intercept.
-	Because this is a function of only x {\displaystyle x}, it can't represent a vertical line.
-	Therefore, it would be useful to make this equation written as a function of both x {\displaystyle x} and y {\displaystyle y}, to be able to draw lines at any angle.
-	The angle (or slope) of a line can be stated as "rise over run", or Δ y / Δ x {\displaystyle \Delta y/\Delta x}. Then, using algebraic manipulation 
+	where m  m} is the slope and b  b} is the y-intercept.
+	Because this is a function of only x  x}, it can't represent a vertical line.
+	Therefore, it would be useful to make this equation written as a function of both x  x} and y  y}, to be able to draw lines at any angle.
+	The angle (or slope) of a line can be stated as "rise over run", or Δ y / Δ x   y/ x}. Then, using algebraic manipulation 
 	"""
 	# img[x, y] = color
 	# if (x == x + width/2 * math.cos())
-	points = bresenham(10, 40, 300, 473)
-	for i in range(points):
-		a, b = points[i]
+	points = bresenham(x, y, xe, ye)
+	for i in points:
+		a, b = i
 		img[a, b] = color
 
-def scale(Image: any) -> np.ndarray:
+def scale(Image) -> np.ndarray:
 	scaled = ImageOps.fit(Image, (width, heigth))
 	return np.array(scaled)
 
-def run(Image : any, name: str):
+def opposite_index(i: int, n: int) -> int:
+	"""Index of the opposite nail on a circle with n nails (n must be even)."""
+	if n % 2 != 0:
+		raise ValueError("opposite_index requires an even number of nails")
+	return (i + n // 2) % n
+
+def run(Image, name: str):
 	original_img = scale(Image)
 	img = np.zeros((width, heigth,3),np.uint8)
 
+	xk = 0
 	for k in range(nails):		
 		angle = (2 * math.pi * k) / nails
 		xk = (width/2) + (width / 2) * math.cos(angle)
 		yk = (heigth/2) + (heigth / 2) * math.sin(angle)
 		nail_pos.append((int(xk), int(yk)))
 		img[math.ceil(xk - 1), math.ceil(yk - 1)] = (255, 255, 255)
-
-	draw_line((255, 0, 0), 450, 50, img)
-
-	# for x in range(width):
-	# 	for y in range(heigth):
-	# 		x_c, y_p = width / 2, heigth / 2
-	# 		d = math.sqrt(math.pow(x - x_c, 2) + math.pow(y - y_p, 2))
-	# 		if d > heigth / 2:
-	# 			continue
-	# 		# img[x,y] = original_img[x, y]
-	# 		# Convert from RGB to grayscale Formula: 0.2126 R + 0.7152 G + 0.0722 B
-	# 		R, G, B = original_img[x, y]
-	# 		value = 0.2126 * R + 0.7152 * G + 0.0722 * B
-	# 		# draw_line(value, x, y, img)
-	# 		# if (x, y == nail_pos[x] or x, y == nail_pos[y]):
-	# 		if not np.array_equal(img[x, y], [255, 255, 255]):
-	# 			img[x, y] = (255, 255, 0)
+	for t in range(10):
+		# if (random.randint(1, 50) < 50):
+		i = random.randint(1, 500)
+		# i = int(xk)
+		j = opposite_index(i, nails)
+		x1, y1 = nail_pos[i]
+		x2, y2 = nail_pos[j]
+		draw_line((255, 0, 0), x1, y1, x2, y2, img)
+		t += 1
 
 	cv2.imwrite("string_" + name,img)
 
