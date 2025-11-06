@@ -9,6 +9,7 @@ width = 1280
 heigth = 1280
 nails = 500
 nail_pos = list()
+thread_operations = 50
 
 def bresenham(x0, y0, x1, y1):
 	"""Return list of integer (x, y) points on the line from (x0,y0) to (x1,y1)."""
@@ -70,20 +71,29 @@ def opposite_index(i: int, n: int) -> int:
 		raise ValueError("opposite_index requires an even number of nails")
 	return (i + n // 2) % n
 
+def draw_point(angle, nails, img):
+	angle = (2 * math.pi * k) / nails
+	xk = (width/2) + (width / 2) * math.cos(angle)
+	yk = (heigth/2) + (heigth / 2) * math.sin(angle)
+	nail_pos.append((int(xk), int(yk)))
+	img[math.ceil(xk - 1), math.ceil(yk - 1)] = (255, 255, 255)
+
 def run(Image, name: str):
 	original_img = scale(Image)
 	img = np.zeros((width, heigth,3),np.uint8)
 
 	xk = 0
-	for k in range(nails):		
-		angle = (2 * math.pi * k) / nails
-		xk = (width/2) + (width / 2) * math.cos(angle)
-		yk = (heigth/2) + (heigth / 2) * math.sin(angle)
-		nail_pos.append((int(xk), int(yk)))
-		img[math.ceil(xk - 1), math.ceil(yk - 1)] = (255, 255, 255)
+	c_threads = []
+	for k in range(nails):
+		c_threads.append(thr.Thread(target=draw_point, args=(angle, nails, img)))
+	for i in range(nails):
+		c_threads[i].start()
+	for i in range(nails):
+		c_threads[i].join()
+
 	threads = []
 
-	for k in range(10):
+	for k in range(thread_operations):
 		i = random.randint(1, 500)
 		j = opposite_index(i, nails)
 		x1, y1 = nail_pos[i]
@@ -91,10 +101,10 @@ def run(Image, name: str):
 		# draw_line((255, 0, 0), x1, y1, x2, y2, img)
 		threads.append(thr.Thread(target=draw_line, args=((255, 255,255), x1, y1, x2, y2, img)))
 
-	for i in range(10):
+	for i in range(thread_operations):
 		threads[i].start()
 
-	for i in range(10):
+	for i in range(thread_operations):
 		threads[i].join()
 
 	cv2.imwrite("string_" + name,img)
