@@ -2,10 +2,11 @@ from PIL import Image
 from PIL import ImageOps
 import numpy as np
 import math
-import random, cv2, sys, os
+import random, cv2, sys, os, time
+import threading as thr
 
-width = 480
-heigth = 480
+width = 1280
+heigth = 1280
 nails = 500
 nail_pos = list()
 
@@ -80,15 +81,21 @@ def run(Image, name: str):
 		yk = (heigth/2) + (heigth / 2) * math.sin(angle)
 		nail_pos.append((int(xk), int(yk)))
 		img[math.ceil(xk - 1), math.ceil(yk - 1)] = (255, 255, 255)
-	for t in range(10):
-		# if (random.randint(1, 50) < 50):
+	threads = []
+
+	for k in range(10):
 		i = random.randint(1, 500)
-		# i = int(xk)
 		j = opposite_index(i, nails)
 		x1, y1 = nail_pos[i]
 		x2, y2 = nail_pos[j]
-		draw_line((255, 0, 0), x1, y1, x2, y2, img)
-		t += 1
+		# draw_line((255, 0, 0), x1, y1, x2, y2, img)
+		threads.append(thr.Thread(target=draw_line, args=((255, 255,255), x1, y1, x2, y2, img)))
+
+	for i in range(10):
+		threads[i].start()
+
+	for i in range(10):
+		threads[i].join()
 
 	cv2.imwrite("string_" + name,img)
 
