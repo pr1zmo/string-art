@@ -45,6 +45,8 @@ def bresenham(x0, y0, x1, y1):
 
 	return points
 
+def get_points(img, nails) -> np.array:
+   pass
 
 def draw_line(color: tuple, x, y, xe, ye, img):
 	"""
