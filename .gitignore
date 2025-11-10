@@ -1,3 +1,6 @@
 *.jpeg
 *.tldr
 *.png
+a.out
+/test
+*.so

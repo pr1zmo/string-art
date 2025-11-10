@@ -3,13 +3,19 @@ from PIL import ImageOps
 import numpy as np
 import math
 import random, cv2, sys, os, time
-import threading as thr
+from tqdm import tqdm
+from ctypes import cdll
 
-width = 1280
-heigth = 1280
-nails = 500
+lib = cdll.LoadLibrary('./libfoo.so')
+
+width = 4396
+heigth = 4396
+nails = 300
 nail_pos = list()
-thread_operations = 50
+thread_operations = 3000
+
+def best_line(i, j, brightness):
+   pass
 
 def bresenham(x0, y0, x1, y1):
 	"""Return list of integer (x, y) points on the line from (x0,y0) to (x1,y1)."""
@@ -61,6 +67,8 @@ def draw_line(color: tuple, x, y, xe, ye, img):
 	points = bresenham(x, y, xe, ye)
 	for i in points:
 		a, b = i
+		a -= 1
+		b -= 1
 		img[a, b] = color
 
 def scale(Image) -> np.ndarray:
@@ -73,41 +81,34 @@ def opposite_index(i: int, n: int) -> int:
 		raise ValueError("opposite_index requires an even number of nails")
 	return (i + n // 2) % n
 
-def draw_point(angle, nails, img):
+def draw_points(k, nails, img):
 	angle = (2 * math.pi * k) / nails
 	xk = (width/2) + (width / 2) * math.cos(angle)
 	yk = (heigth/2) + (heigth / 2) * math.sin(angle)
 	nail_pos.append((int(xk), int(yk)))
 	img[math.ceil(xk - 1), math.ceil(yk - 1)] = (255, 255, 255)
 
+def check_pixel(pixel) -> bool:
+	return True
+
 def run(Image, name: str):
 	original_img = scale(Image)
 	img = np.zeros((width, heigth,3),np.uint8)
 
 	xk = 0
-	c_threads = []
-	for k in range(nails):
-		c_threads.append(thr.Thread(target=draw_point, args=(angle, nails, img)))
 	for i in range(nails):
-		c_threads[i].start()
-	for i in range(nails):
-		c_threads[i].join()
+		draw_points(i, nails, img)
 
-	threads = []
-
-	for k in range(thread_operations):
-		i = random.randint(1, 500)
-		j = opposite_index(i, nails)
-		x1, y1 = nail_pos[i]
-		x2, y2 = nail_pos[j]
-		# draw_line((255, 0, 0), x1, y1, x2, y2, img)
-		threads.append(thr.Thread(target=draw_line, args=((255, 255,255), x1, y1, x2, y2, img)))
-
-	for i in range(thread_operations):
-		threads[i].start()
-
-	for i in range(thread_operations):
-		threads[i].join()
+	a ,b = 0, 0
+	with tqdm(total=thread_operations, desc="Drawing threads", unit="lines") as pbar:
+		for z in range(thread_operations):
+			pbar.set_postfix({"status": "drawing"})
+			i = random.randint(0, nails - 1)
+			j = random.randint(0, nails - 1)
+			x1, y1 = nail_pos[i]
+			x2, y2 = nail_pos[j]
+			draw_line((255, 255, 255), x1, y1, x2, y2, img)
+			pbar.update(1)
 
 	cv2.imwrite("string_" + name,img)
 
