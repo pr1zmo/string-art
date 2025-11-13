@@ -4,3 +4,4 @@
 a.out
 /test
 *.so
+__pycache__
