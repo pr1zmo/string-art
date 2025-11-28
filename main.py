@@ -61,6 +61,7 @@ def check_pixel(pixel) -> bool:
 def run(Image, name: str):
 	original_img = scale(Image)
 	img = np.zeros((width, heigth,3),np.uint8)
+	print(len(img))
 
 	xk = 0
 	for i in range(nails):
